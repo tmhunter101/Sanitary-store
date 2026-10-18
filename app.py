@@ -7,7 +7,24 @@ from zoneinfo import ZoneInfo
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "change-this-local-secret"
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///sanitary_store.db"
+
+import os
+
+database_url = os.environ.get("DATABASE_URL")
+
+if database_url:
+    database_url = database_url.replace(
+        "postgres://", "postgresql://", 1
+    )
+    app.config["SQLALCHEMY_DATABASE_URI"] = database_url
+    app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+        "connect_args": {"sslmode": "require"}
+    }
+else:
+    app.config["SQLALCHEMY_DATABASE_URI"] = (
+        "sqlite:///sanitary_store.db"
+    )
+
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db = SQLAlchemy(app)
